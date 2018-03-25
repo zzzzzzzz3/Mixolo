@@ -104,8 +104,6 @@ export default class Router extends PureComponent {
 
     render() {
         const {app, dispatch, router} = this.props;
-        //app在加载缓存数据时显示loading
-        // if (app.loading) return <Loading/>;
 
         const navigation = addNavigationHelpers({
             dispatch,

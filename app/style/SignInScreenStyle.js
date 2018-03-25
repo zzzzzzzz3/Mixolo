@@ -4,8 +4,7 @@ import AppUtil from "../utils/AppUtil";
 
 export default styles = StyleSheet.create({
     scrollContainer:{
-        flex:1,
-        backgroundColor:Color.Teal
+        backgroundColor:Color.Teal,
     },
     container:{
         height:AppUtil.windowHeight,

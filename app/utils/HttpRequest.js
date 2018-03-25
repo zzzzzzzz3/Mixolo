@@ -1,4 +1,4 @@
-import Storage from './StorageUtil'
+import queryString from 'query-string';
 
 function timeout_fetch(fetch_promise, timeout = 10000) {
     let timeout_fn = null;
@@ -25,17 +25,24 @@ function timeout_fetch(fetch_promise, timeout = 10000) {
 
 export default class HttpRequest {
 
-    static get(url) {
+    static get(url, token = "") {
         let header = {
             "Content-Type": "application/json;charset=UTF-8",
-            "accesstoken": Storage.get("token")
+            "accesstoken": token
         };
         // noinspection JSIgnoredPromiseFromCall
         return new Promise(function (resolve, reject) {
             timeout_fetch(fetch(url, {
                 method: 'GET',
                 headers: header
-            })).then((response) => response.json())
+            })).then((response) => {
+                    console.log("------------>response:", response);
+                    if (response.ok) {
+                        return response.json()
+                    } else {
+                        return {error: response.statusText}
+                    }
+                })
                 .then((responseData) => {
                     console.log("------------>result:", responseData);
                     resolve(responseData);
@@ -47,31 +54,43 @@ export default class HttpRequest {
         });
     }
 
-    static post(url, params, type = "json") {
-        let contentType = "application/json;charset=UTF-8";
-        let body = JSON.stringify(params);
+    static post(url, params, type = "json", token = "") {
+        let contentType = null;
+        let body = null;
 
         if (type === "form") {
             contentType = "application/x-www-form-urlencoded;charset=utf-8";
-            body = params;
+            body = queryString.stringify(params);
+        } else if (type === "json") {
+            contentType = "application/json;charset=UTF-8";
+            body = JSON.stringify(params);
         }
 
         let header = {
             "Content-Type": contentType,
-            "accesstoken": Storage.get("token")
+            "accesstoken": token
         };
 
         // noinspection JSIgnoredPromiseFromCall
         return new Promise(function (resolve, reject) {
             timeout_fetch(fetch(url, {
-                method: 'GET',
+                method: 'POST',
                 headers: header,
                 body: body
-            })).then((response) => response.json())
+            })).then((response) => {
+                console.log("------------>response:", response);
+                if (response.ok) {
+                    return response.json()
+                } else {
+                    return {error: response.statusText}
+                }
+            })
                 .then((responseData) => {
+                    console.log("------------>result:", responseData);
                     resolve(responseData);
                 })
                 .catch((err) => {
+                    console.log("------------>error:", err);
                     reject(err);
                 });
         });

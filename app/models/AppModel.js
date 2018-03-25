@@ -1,7 +1,6 @@
 import {createAction,Storage} from "../utils";
 import NavigationActions from "react-navigation/src/NavigationActions";
 import * as authService from '../service/auth';
-import HttpRequest from '../utils/HttpRequest'
 import {Toast} from "antd-mobile/lib/index";
 
 const AppModel =  {
@@ -9,9 +8,7 @@ const AppModel =  {
     namespace:"app",
     //model的数据
     state:{
-        login: false,
-        loading: true,
-        fetching: false,
+        user:null
     },
     //修改数据的唯一途径,同步方式
     reducers:{
@@ -23,35 +20,27 @@ const AppModel =  {
     effects:{
         //加载缓存
         *loadStorage(action, { call, put }) {
-            const login = yield call(Storage.get, 'login', false);
-            yield put(createAction('updateState')({ login, loading: false }))
+            const user = yield call(Storage.get, 'user');
+            yield put(createAction('updateState')({ user:user}))
         },
         //请求登录
         *login({ payload }, { call, put }) {
-            console.log('login------------------------',payload);
             Toast.loading('loading',0);
-            yield put(createAction('updateState')({ fetching: true }));
-            const login = yield call(authService.login, payload);
-            if (login) {
+            const data = yield call(authService.login, payload);
+            Toast.hide();
+            if (data.status === 'success') {
+                yield put(createAction('updateState')({ user:data.user_data}));
                 //重置导航栈
                 yield put(
                     NavigationActions.reset({
                         index: 0,
                         actions: [NavigationActions.navigate({ routeName: 'Main' })],
                     })
-                )
+                );
+                call(Storage.set,'user',data.user_data);
+            }else {
+                Toast.info(data.error?data.error:'Invalid userid or password.',1)
             }
-            yield put(createAction('updateState')({ login, fetching: false }));
-            Toast.hide();
-            // Storage.set('login', login)
-        },
-        *logout(action, { call, put }) {
-            yield call(Storage.set, 'login', false);
-            yield put(createAction('updateState')({ login: false }))
-        },
-        *getData(action,{call,put}){
-            const data = yield call(fetchData,'http://www.wanandroid.com/article/list/1/json');
-            yield put(createAction('updateState')({data:data}));
         },
     },
     //用于订阅数据源，例如键盘输入等
@@ -62,17 +51,5 @@ const AppModel =  {
         },
     }
 };
-
-/**
- * 请求数据的例子
- * */
-async function fetchData(url){
-    try{
-        return await HttpRequest.get(url).then( data => data);
-    }catch(e){
-        console.error(e);
-    }
-
-}
 
 export default AppModel

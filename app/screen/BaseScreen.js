@@ -20,6 +20,7 @@ export default class BaseScreen extends PureComponent {
         this.showRight = this.showRight.bind(this);
         this.renderTitle = this.renderTitle.bind(this);
 
+        //状态栏
         this.state = {
             animated: true,
             backgroundColor: Color.status_bar,
@@ -30,15 +31,12 @@ export default class BaseScreen extends PureComponent {
         }
     }
 
-    componentWillMount() {
-        console.log(`${this.props.title} willmount`)
-    }
-
-
+    //隐藏所有正在显示的toast
     componentWillUnmount() {
         Toast.hide();
     }
 
+    //状态栏占位
     statusBar() {
         if (this.state.hidden) {
             return null
@@ -85,14 +83,17 @@ export default class BaseScreen extends PureComponent {
         )
     }
 
+    //绘制导航栏的标题部分
     renderTitle() {
         return null
     }
 
+    //左边icon的点击事件
     leftPress() {
         this.props.dispatch(NavigationActions.back())
     }
 
+    //右边icon的点击事件
     rightPress() {
     }
 
@@ -103,18 +104,22 @@ export default class BaseScreen extends PureComponent {
         return null
     }
 
+    //是否显示左边icon
     showLeft() {
         return false
     }
 
+    //是否显示右边icon
     showRight() {
         return false
     }
 
+    //左边的icon样式
     rightIcon() {
         return null
     }
 
+    //右边的icon样式
     leftIcon() {
         return {name: 'angle-left', size: 25, color: Color.white}
     }

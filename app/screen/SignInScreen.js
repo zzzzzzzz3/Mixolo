@@ -4,7 +4,6 @@ import {
     View,
     Text,
     TextInput,
-    ScrollView,
     Keyboard,
 } from "react-native";
 import {connect} from "react-redux";
@@ -16,6 +15,8 @@ import {createAction} from "../utils";
 import TextButton from "../component/TextButton";
 import AppUtil from "../utils/AppUtil";
 import styles from '../style/SignInScreenStyle'
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view'
+import TextUtil from "../utils/TextUtil";
 
 
 @connect()
@@ -39,12 +40,12 @@ export default class SignInScreen extends BaseScreen {
 
     //键盘弹起后执行
     keyboardDidShow = (event) => {
-        this._scrollView.scrollTo({x: 0, y: 100, animated: true});
+        console.log("keyboard=====================================show")
     };
 
 //键盘收起后执行
     keyboardDidHide = (event) => {
-        this._scrollView.scrollTo({x: 0, y: 0, animated: true});
+        console.log("keyboard=====================================hide")
     };
 
 
@@ -54,7 +55,15 @@ export default class SignInScreen extends BaseScreen {
 
 
     signIn = () => {
-        this.props.dispatch(createAction('app/login')({email: this.state.email, password: this.state.password}))
+        if (TextUtil.isEmpty(this.state.email)) {
+            Toast.info('Please enter email.', 1)
+        } else if (!TextUtil.isEmail(this.state.email)) {
+            Toast.info('Please enter valid email.', 1)
+        } else if (TextUtil.isEmpty(this.state.password)) {
+            Toast.info('Please enter password.', 1)
+        } else {
+            this.props.dispatch(createAction('app/login')({Username: this.state.email, Password: this.state.password}))
+        }
     };
 
     forgotPass = () => {
@@ -62,17 +71,16 @@ export default class SignInScreen extends BaseScreen {
     };
 
     onEmailChange = (email) => {
-        this.setState(previousState => {
-            return {...previousState, email: email};
+        this.setState({
+            email: email
         });
     };
 
     onPassworkChange = (pass) => {
-        this.setState(previousState => {
-            return {...previousState, password: pass};
+        this.setState({
+            password: pass
         });
     };
-
 
     renderNavbar() {
         return null
@@ -83,59 +91,64 @@ export default class SignInScreen extends BaseScreen {
      * */
     renderContent() {
         return (
-            <ScrollView
+            <KeyboardAwareScrollView
                 style={styles.scrollContainer}
-                ref={component => this._scrollView = component}
-                scrollEnabled={false}
-                keyboardShouldPersistTaps='always'
+                resetScrollToCoords={{x: 0, y: 0}}
+                contentContainerStyle={styles.container}
+                scrollEnabled={true}
             >
-                <View style={styles.container}>
-                    <Text style={styles.logo}>mixolo</Text>
-                    <DoubleButton
-                        style={styles.labelButton}
-                        title='GO SOLO'
-                    />
 
-                    {/* Email */}
-                    <Input
-                        hint={'Email'}
-                        onTextChange={this.onEmailChange}
-                    />
-                    {/* password */}
-                    <Input
-                        hint={'Password'}
-                        onTextChange={this.onPassworkChange}
-                    />
-                    {/* forgot password */}
-                    <View
-                        style={{width:270}}
-                    >
-                        <TextButton
-                            onPress={this.forgotPass}
-                            title="Forgot password?"
-                            style={styles.forgot}
-                        />
-                    </View>
-                    {/* sign in */}
-                    <DoubleButton
-                        onPress={this.signIn}
-                        style={styles.button}
-                        title='SIGN IN'
-                    />
+                <Text style={styles.logo}>mixolo</Text>
+                <DoubleButton
+                    style={styles.labelButton}
+                    title='GO SOLO'
+                />
+
+                {/* Email */}
+                <Input
+                    hint={'Email'}
+                    onChangeText={this.onEmailChange}
+                />
+                {/* password */}
+                <Input
+                    hint={'Password'}
+                    onChangeText={this.onPassworkChange}
+                    isPassword={true}
+                />
+                {/* forgot password */}
+                <View
+                    style={{width: 270}}
+                >
                     <TextButton
-                        title={"Don't have an account? Sign up"}
-                        onPress={this.signUp}
-                        style={styles.bottom}
+                        onPress={this.forgotPass}
+                        title="Forgot password?"
+                        style={styles.forgot}
                     />
                 </View>
+                {/* sign in */}
+                <DoubleButton
+                    onPress={this.signIn}
+                    style={styles.button}
+                    title='SIGN IN'
+                />
+                <TextButton
+                    title={"Don't have an account? Sign up"}
+                    onPress={this.signUp}
+                    style={styles.bottom}
+                />
 
-            </ScrollView>
+
+            </KeyboardAwareScrollView>
         )
     }
 
 }
 
 class Input extends Component {
+
+    static defaultProps={
+      isPassword:false
+    };
 
     render() {
         return (
@@ -151,6 +164,7 @@ class Input extends Component {
                         placeholder={this.props.hint}
                         onChangeText={this.props.onChangeText}
                         numberOfLines={1}
+                        secureTextEntry={this.props.isPassword}
                         style={styles.input}/>
 
                 )}

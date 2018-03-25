@@ -14,19 +14,18 @@ import NavigationActions from "react-navigation/src/NavigationActions";
 @connect(({app}) => ({...app}))
 export default class SplashScreen extends BaseScreen {
 
-    componentDidMount() {
+    componentWillUpdate(){
         setTimeout(() => {
-            let screen;
-            if (this.props.login) {
-                screen = 'Main'
-            } else {
+            //判断用户是否登录
+            const {user} = this.props;
+            let screen = 'Main';
+            if(user == null){
                 screen = 'Login'
             }
-
             this.props.dispatch(NavigationActions.reset({
                 index: 0,
                 actions: [NavigationActions.navigate({routeName: screen})]
-            }))
+            }));
         }, 1000)
     }
 
